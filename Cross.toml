@@ -1,0 +1,7 @@
+[build]
+build-std = false
+default-target = "aarch64-unknown-linux-gnu"
+
+[build.zig]
+enable = true    # Сборка с участием линковщика Zig
+version = "2.31" # Версия glibc, установленная на RK3399-ROC-PC-PRO

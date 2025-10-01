@@ -1,0 +1,13 @@
+[package]
+name = "rk_nku_menu"
+version = "0.1.0"
+edition = "2024"
+authors.workspace = true
+
+[dependencies]
+enigo = "0.5.0"
+sysfs_gpio = { version = "0.6.2" }
+log = { workspace = true }
+env_logger = { workspace = true }
+config_lib = { path = "../config_lib" }
+menu_tui = { path = "../menu_tui" }

@@ -1,0 +1,12 @@
+[package]
+name = "rk_nku_sync"
+version = "0.1.0"
+edition = "2024"
+authors.workspace = true
+
+[dependencies]
+protocol_lib = { path = "../protocol_lib" }
+config_lib = { path = "../config_lib" }
+clap = { workspace = true }
+log = { workspace = true }
+env_logger = { workspace = true }
