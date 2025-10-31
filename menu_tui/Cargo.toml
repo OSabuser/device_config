@@ -1,16 +1,14 @@
 [package]
 name = "menu_tui"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 authors.workspace = true
 
 [dependencies]
 clap = { workspace = true }
 config_lib = { path = "../config_lib" }
-inquire = { workspace = true }
-enigo = "0.5.0"
-colored = "3.0.0"
-terminal-menu = "3.0.0"
+cursive = {version = "0.21.1", features = ["toml"]}
+
 crossterm = "0.25.0"
 log = { workspace = true }
 env_logger = { workspace = true }

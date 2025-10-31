@@ -4,17 +4,17 @@ use toml_edit::value;
 
 use crate::toml_parser::*;
 
-/// Структура, содержащая набор параметров Parameter
+/// Структура, содержащая набор параметров` Parameter`
 #[derive(Debug, Clone)]
 pub struct DeviceConfig {
     scheme: TomlScheme,
     /// Набор параметров
-    /// key - имя параметра, value - структура, описывающая параметр
+    /// `key` - имя параметра, `value` - структура, описывающая параметр
     parameters: HashMap<String, Parameter>,
 }
 
 impl DeviceConfig {
-    /// ## Заполнение струтуры DeviceConfig
+    /// ## Заполнение струтуры `DeviceConfig`
     /// * `path_to_scheme` - путь к файлу-cхеме
     pub fn create_parameter_list(path_to_scheme: &str) -> Result<DeviceConfig, String> {
         let toml_config = TomlScheme::new(path_to_scheme).map_err(|e| e.to_string())?;
@@ -43,7 +43,7 @@ impl DeviceConfig {
         Ok(device_config)
     }
 
-    /// # Сохранение текущих значений параметров в TOML-файл self.schema_path
+    /// ## Сохранение текущих значений параметров в TOML-файл `self.schema_path`
     pub fn save_parameters_values(&self) -> Result<(), String> {
         let mut toml_config =
             TomlScheme::new(&self.scheme.get_path_to_scheme_file()).map_err(|e| e.to_string())?;
@@ -57,7 +57,7 @@ impl DeviceConfig {
         Ok(())
     }
 
-    /// # Получение списка ключей - имен параметров
+    /// ## Получение списка ключей - имен параметров
     pub fn get_parameters_names(&self) -> Result<Vec<String>, String> {
         if self.parameters.is_empty() {
             return Err("Parameters list is empty".to_string());
@@ -66,7 +66,7 @@ impl DeviceConfig {
         return Ok(self.parameters.keys().map(|key| key.clone()).collect());
     }
 
-    /// # Получение описания параметра соответствующего key
+    /// ## Получение описания параметра соответствующего `key`
     pub fn get_parameter_description(&self, key: &str) -> Result<String, String> {
         match self.parameters.get(key) {
             Some(parameter) => Ok(parameter.get_description()),
@@ -74,7 +74,7 @@ impl DeviceConfig {
         }
     }
 
-    /// # Получение списка возможных значений параметра соответствующего key
+    /// ## Получение списка возможных значений параметра соответствующего `key`
     pub fn get_parameter_possible_values(&self, key: &str) -> Result<Vec<String>, String> {
         match self.parameters.get(key) {
             Some(parameter) => Ok(parameter.get_possible_values()),
@@ -82,7 +82,7 @@ impl DeviceConfig {
         }
     }
 
-    /// # Получение значения параметра соответствующего key
+    /// ## Получение значения параметра соответствующего `key`
     pub fn get_parameter_value(&self, key: &str) -> Result<String, String> {
         match self.parameters.get(key) {
             Some(parameter) => Ok(parameter.get_value()),
@@ -90,7 +90,7 @@ impl DeviceConfig {
         }
     }
 
-    /// # Установка значения параметра соответствующего key
+    /// ## Установка значения параметра соответствующего `key`
     pub fn set_parameter_value(&mut self, key: &str, value: String) -> Result<(), String> {
         match self.parameters.get_mut(key) {
             Some(parameter) => parameter.set_value(value),
@@ -99,7 +99,7 @@ impl DeviceConfig {
     }
 
     /// ## Получение числового индекса соответствующего текущему значению параметра
-    /// Индекс соответствует положению текущего значения в списке возможных значений possible_values
+    /// Индекс соответствует положению текущего значения в списке возможных значений `possible_values`
     pub fn get_parameter_index_using_value(&self, key: &str) -> Result<u8, String> {
         let parameters_list = self.get_parameters_names()?;
         if parameters_list.contains(&key.to_owned()) {
@@ -116,8 +116,8 @@ impl DeviceConfig {
         Err("Unable to get parameter value using index".to_string())
     }
 
-    /// ## Присваивание параметру key значения, соответствующего index
-    /// Индекс соответствует  положению  значения в списке возможных значений possible_values
+    /// ## Присваивание параметру `key` значения, соответствующего `index`
+    /// Индекс соответствует  положению  значения в списке возможных значений `possible_values`
     pub fn set_parameter_value_using_index(&mut self, key: &str, index: u8) -> Result<(), String> {
         let parameters_list = self.get_parameters_names()?;
         if parameters_list.contains(&key.to_owned()) {

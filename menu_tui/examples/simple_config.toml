@@ -26,7 +26,29 @@ possible_values = [
     "15",
 ]
 default = "0"
-current = "6"
+current = "4"
+
+[placement]
+name = "Размещение"
+possible_values = [
+    "Кабина",
+    "Этаж",
+    "Универсальное",
+]
+default = "Кабина"
+current = "Универсальное"
+
+
+[station]
+name = "Станция управления"
+possible_values = [
+    "Smart",
+    "ШК6000",
+    "НКУ-CAN",
+    "НКУ-SD7",
+]
+default = "Smart"
+current = "Smart"
 
 [soundvolume]
 name = "Громкость звука"
@@ -38,7 +60,7 @@ current = "50%"
 name = "Громкость музыки"
 possible_values = ["0%", "25%", "50%", "75%", "100%"]
 default = "0%"
-current = "100%"
+current = "50%"
 
 [loadcapacity]
 name = "Грузоподъемность"
@@ -61,4 +83,4 @@ possible_values = [
     "1600кг 21чел.",
 ]
 default = "СКРЫТО"
-current = "240кг 3чел."
+current = "525кг 7чел."
