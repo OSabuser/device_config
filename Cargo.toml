@@ -5,11 +5,14 @@ members = [
     "menu_tui",
     "protocol_lib",
     "rk_nku_sync",
-    "rk_nku_menu", "logger",
+    "pi_nku_sync",
+    "pi_nku_menu",
+    "rk_nku_menu",
+    "logger",
 ]
 
 [workspace.package]
-authors = ["MU LLC <info@machunit.com>"]
+authors = ["Dmitry Akimov <von.akimov@gmail.com>"]
 
 [workspace.dependencies]
 inquire = "0.7.5"

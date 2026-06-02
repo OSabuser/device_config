@@ -1,0 +1,13 @@
+[package]
+name = "pi_nku_menu"
+version = "0.1.1"
+edition = "2024"
+authors.workspace = true
+
+[dependencies]
+thiserror = "2.0"
+rppal = "0.22.1"
+log = { workspace = true }
+env_logger = { workspace = true }
+config_lib = { path = "../config_lib" }
+menu_tui = { path = "../menu_tui" }
