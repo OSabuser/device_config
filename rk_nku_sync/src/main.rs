@@ -4,13 +4,13 @@ mod serial_config;
 use std::str::FromStr;
 
 use clap::Parser;
-use log::{error, warn};
+use log::{error, info, warn};
 
 /// Количество попыток выполнить запрос
 const REQUEST_ATTEMPTS: u8 = 5;
 
 #[derive(Parser)]
-#[command(author = "Akimov Dmitry MU LLC", name = "nku_sync", version = "0.1.0", about, long_about = None)]
+#[command(author = "Akimov Dmitry MU LLC", name = "smart_sync", version = "0.1.0", about, long_about = None)]
 struct Args {
     /// Тип команды: pull - запрос сохраненных в устройстве настроек, push - отправка новых настроек
     #[arg(short = 'm', long = "mode")]
@@ -21,7 +21,7 @@ fn main() -> Result<(), String> {
     let args = Args::parse();
 
     env_logger::init();
-    warn!("rk_nku_sync> command mode: {:?}", args.mode);
+    info!("rk_nku_sync> command mode: {:?}", args.mode);
 
     let mut nku_client = nku_client::NkuClient::new()?;
 
@@ -60,6 +60,8 @@ fn push_parameters(client: &mut nku_client::NkuClient) -> Result<(), String> {
         }
     }
 
+    info!("Parameters have been pushed to device!");
+
     // Запуск стриминга данных от станции
     attempts = 1;
     'start_streaming_loop: loop {
@@ -80,7 +82,7 @@ fn push_parameters(client: &mut nku_client::NkuClient) -> Result<(), String> {
             return Err("Start streaming failed!".to_string());
         }
     }
-
+    info!("Data streaming from MCU has been started!");
     Ok(())
 }
 
@@ -90,7 +92,7 @@ fn pull_parameters(client: &mut nku_client::NkuClient) -> Result<(), String> {
     // Цикл попыток установить соединение
     'pull_request_loop: loop {
         warn!("Pull request attempt: {attempts}");
-   
+
         let result = client.pull_parameters_from_device();
         if result.is_ok() {
             break 'pull_request_loop;
@@ -106,7 +108,7 @@ fn pull_parameters(client: &mut nku_client::NkuClient) -> Result<(), String> {
             return Err("Pull request failed!".to_string());
         }
     }
-
+    info!("Parameters have been pulled from device!");
     Ok(())
 }
 

@@ -63,7 +63,7 @@ pub(crate) fn show_config_view(siv: &mut Cursive) {
     // Кнопка возврата в главное меню
     parameter_list.add_child(
         "",
-        Button::new("Назад в главное меню", |s| {
+        Button::new("Назад", |s| {
             let state: MenuAppState = s
                 .take_user_data()
                 .expect("Не удалось выполнить take_user_data");

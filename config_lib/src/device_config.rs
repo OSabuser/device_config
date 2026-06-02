@@ -26,12 +26,24 @@ impl DeviceConfig {
         debug!("Parameter list: {:#?}", parameter_list);
         let mut parameter_map = HashMap::new();
 
-        for parameter in parameter_list {
+        'mapify: for parameter in parameter_list {
+            // Пропускаем параметры, которые не требуют синхронизации с внешним MCU
+            // Актуально для {protocol_name}_scheme.toml
+            if let Ok(should_sync) = toml_config.get_string_value(&parameter, "should_sync") {
+                match should_sync.as_str() {
+                    "false" => {
+                        continue 'mapify;
+                    }
+                    _ => (),
+                }
+            }
+
             let device_parameter = Parameter {
                 description: toml_config.get_string_value(&parameter, "name")?,
                 value: toml_config.get_string_value(&parameter, "current")?,
                 possible_values: toml_config.get_array_value(&parameter, "possible_values")?,
             };
+
             parameter_map.insert(parameter, device_parameter);
         }
 
@@ -44,6 +56,7 @@ impl DeviceConfig {
     }
 
     /// ## Сохранение текущих значений параметров в TOML-файл `self.schema_path`
+    /// TODO: параметры с `should_sync = false` не сохраняются???
     pub fn save_parameters_values(&self) -> Result<(), String> {
         let mut toml_config =
             TomlScheme::new(&self.scheme.get_path_to_scheme_file()).map_err(|e| e.to_string())?;

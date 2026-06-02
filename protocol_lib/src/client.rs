@@ -1,4 +1,4 @@
-use log::{debug, error, warn};
+use log::{error, warn};
 
 use crate::mu_frame::MUFrame;
 use std::time::Duration;

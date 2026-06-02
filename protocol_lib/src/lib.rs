@@ -1,9 +1,11 @@
 pub mod client;
-mod mu_frame;
+pub mod inc_parser;
+pub mod mu_frame;
 
+use crate::inc_parser::{FrameParser, ParseResult};
 use crate::mu_frame::MUFrame;
 
-use log::trace;
+use log::{trace, warn};
 use std::{
     io::{Read, Write},
     thread,
@@ -21,6 +23,35 @@ fn send_proto_message<Writer: Write>(data: MUFrame, mut writer: Writer) -> Resul
     thread::sleep(std::time::Duration::from_millis(ANSWER_DELAY_MS));
 
     Ok(())
+}
+
+/// Прием сообщения
+fn _recv_proto_messages<Reader: Read>(mut reader: Reader) -> Result<Vec<MUFrame>, String> {
+    let mut read_buffer = [0; 512];
+    let mut parser = FrameParser::new();
+    let mut result = Vec::new();
+
+    match reader.read(&mut read_buffer) {
+        Ok(n) if n > 0 => {
+            trace!("Received raw message: {read_buffer:?}");
+            for byte in &read_buffer[0..n] {
+                match parser.process_raw_byte(*byte) {
+                    ParseResult::FrameReady(frame) => {
+                        result.push(frame);
+                        parser.reset();
+                    }
+                    ParseResult::Error(e) => {
+                        warn!("Error parsing frame: {}", e);
+                    }
+                    ParseResult::Incomplete => {}
+                }
+            }
+        }
+        Ok(_) => {}
+        Err(e) => return Err(e.to_string()),
+    };
+
+    Ok(result)
 }
 
 /// Прием сообщения
@@ -80,5 +111,29 @@ mod tests {
         let received_frame = recv_proto_message(&buf[..]).unwrap();
         assert_eq!(received_frame.get_data(), frame_to_send.get_data());
         assert_eq!(received_frame, frame_to_send);
+    }
+
+    #[test]
+    fn test_send_and_multiple_recv() {
+        let mut frame_to_send_1 = MUFrame::new();
+        frame_to_send_1
+            .set_data(b"get server_info\n".to_vec())
+            .unwrap();
+
+        let mut frame_to_send_2 = MUFrame::new();
+        frame_to_send_2
+            .set_data(b"Just for test\n".to_vec())
+            .unwrap();
+
+        let mut buf_1 = Vec::new();
+        let mut buf_2 = Vec::new();
+        send_proto_message(frame_to_send_1.clone(), &mut buf_1).unwrap();
+        send_proto_message(frame_to_send_2.clone(), &mut buf_2).unwrap();
+
+        let doubled_buf = [buf_1.clone(), buf_2.clone()].concat();
+        let received_frames = _recv_proto_messages(&doubled_buf[..]).unwrap();
+        assert_eq!(received_frames.len(), 2);
+        assert_eq!(received_frames[0], frame_to_send_1);
+        assert_eq!(received_frames[1], frame_to_send_2);
     }
 }

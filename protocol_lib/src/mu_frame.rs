@@ -1,10 +1,14 @@
 use std::fmt::Display;
 
-const SYNC1: u8 = 0xAA;
-const SYNC2: u8 = 0xBB;
-const MAX_DATA_SIZE: u8 = u8::MAX;
-const CONSOLE_OPCODE: u8 = 0xC0;
+pub const SYNC1: u8 = 0xAA;
+pub const SYNC2: u8 = 0xBB;
+pub const MAX_DATA_SIZE: u8 = u8::MAX;
 
+pub const OPCODE_ERROR: u8 = 0x01;
+pub const OPCODE_LOG: u8 = 0x19;
+pub const OPCODE_DATA: u8 = 0xDA;
+pub const OPCODE_CONSOLE: u8 = 0xC0;
+pub const OPCODE_BOOTLOADER: u8 = 0xB1;
 /// Пакет данных протокола "МЮ"
 ///
 ///
@@ -33,7 +37,7 @@ impl MUFrame {
         Self {
             prefix: SYNC1,
             length: 0,
-            opcode: CONSOLE_OPCODE,
+            opcode: OPCODE_CONSOLE,
             data: Vec::with_capacity(MAX_DATA_SIZE as usize),
             crc_low: 0x00,
             crc_high: 0x00,
@@ -41,8 +45,28 @@ impl MUFrame {
         }
     }
 
-    pub(crate) fn get_data(&self) -> &Vec<u8> {
+    pub fn get_data(&self) -> &Vec<u8> {
         &self.data
+    }
+
+    pub fn get_opcode(&self) -> u8 {
+        self.opcode
+    }
+
+    /// Проверка корректности опкода (ERROR, LOG, DATA, CONSOLE)
+    pub fn is_opcode_correct(opcode: u8) -> bool {
+        return [OPCODE_ERROR, OPCODE_LOG, OPCODE_DATA, OPCODE_CONSOLE].contains(&opcode);
+    }
+
+    /// Получение текстового описания опкода фрейма
+    pub fn get_opcode_description(opcode: u8) -> String {
+        match opcode {
+            OPCODE_ERROR => "ОШИБКА".to_string(),
+            OPCODE_LOG => "СТАТУС".to_string(),
+            OPCODE_DATA => "ДАННЫЕ".to_string(),
+            OPCODE_CONSOLE => "КОНСОЛЬ".to_string(),
+            _ => "UNKNOWN".to_string(),
+        }
     }
 
     /// Загрузка данных в фрейм, вычисление CRC и длины
@@ -78,7 +102,7 @@ impl MUFrame {
 
         frame.suffix = data[5 + frame.length as usize];
 
-        frame.invalidate_frame()?;
+        frame.validate_frame()?;
 
         Ok(frame)
     }
@@ -98,7 +122,7 @@ impl MUFrame {
     }
 
     /// Проверка валидности фрейма
-    fn invalidate_frame(&self) -> Result<(), String> {
+    pub(crate) fn validate_frame(&self) -> Result<(), String> {
         if !self.is_prefix_correct() {
             return Err("Bad prefix".to_string());
         }
@@ -203,7 +227,7 @@ mod tests {
         assert!(frame.is_prefix_correct());
         assert!(frame.is_postfix_correct());
         assert!(frame.is_crc_valid(0x7780));
-        assert_eq!(frame.opcode, CONSOLE_OPCODE);
+        assert_eq!(frame.opcode, OPCODE_CONSOLE);
         assert_eq!(frame.data, b"#STM:L0:R16:A1:S0:M0:E#\r\n\0");
     }
 
@@ -218,8 +242,8 @@ mod tests {
         assert!(frame.is_prefix_correct());
         assert!(frame.is_postfix_correct());
         assert!(frame.is_crc_valid(0xB6BB));
-        assert_eq!(frame.opcode, CONSOLE_OPCODE);
+        assert_eq!(frame.opcode, OPCODE_CONSOLE);
         assert_eq!(frame.data, b"#STM:L16:R16:A1:S2:M0:E#\r\n\0");
-        frame.invalidate_frame().unwrap();
+        frame.validate_frame().unwrap();
     }
 }

@@ -1,0 +1,5 @@
+[2025-12-10 14:34:29.234] ERROR | Test error
+[2025-12-10 14:34:29.234] FRAME | OPCODE: 0x01 | CRC: 0x1234 | PAYLOAD: That was test frame
+[2025-12-10 14:36:07.753] ERROR | Test error
+[2025-12-10 14:36:07.753] FRAME | OPCODE: 0x01 | PAYLOAD: That was test frame #1
+[2025-12-10 14:36:07.753] FRAME | OPCODE: 0x01 | PAYLOAD: That was test frame #2

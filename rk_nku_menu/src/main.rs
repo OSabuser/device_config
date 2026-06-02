@@ -1,11 +1,12 @@
-use gpiocdev::Request;
+use std::time::{Duration, Instant};
+
 use log::debug;
 use menu_tui::menu_navigation::NavigationManager;
 use menu_tui::menu_process::DeviceMenu;
-use std::time::Duration;
+use sysfs_gpio::{Direction, Edge, Pin};
 /// ### Путь к файлу-схемы параметров устройства
-const NKU_DEVICE_CONFIG_PATH: &str = "rk_smart_configs/smart_scheme.toml";
-const TUI_APP_CONFIG_PATH: &str = "rk_smart_configs/menu_style.toml";
+const NKU_DEVICE_CONFIG_PATH: &str = "rk_nku_configs/nku_scheme.toml";
+const TUI_APP_CONFIG_PATH: &str = "rk_nku_configs/menu_style.toml";
 
 /// Максимальное время бездействия [c], после достижения которого происходит выход из меню
 const IDLE_TIMEOUT_SEC: u64 = 30;
@@ -42,72 +43,75 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     return Ok(());
 }
 
-/// ligpiod номер порта кнопки ввода
-const S1_BTN: (&str, u8) = ("/dev/gpiochip3", 16);
-/// ligpiod номер порта кнопки выбора
-const S2_BTN: (&str, u8) = ("/dev/gpiochip2", 1);
-/// ## Симуляция обработчиков GPIO кнопок
-/// ### Расчёт номера пина в порядке libgpiod
+/// Расчёт номера пина в порядке SYSFS
 /// ```
 /// bank = 0; // GPIO0_B5 => 0, bank ∈ [0,4]
 /// group = 1; // GPIO0_B5 => 1, group ∈ {(A=0), (B=1), (C=2), (D=3)}
 /// X = 5; // GPIO0_B5 => 5, X ∈ [0,7]
 /// number = group * 8 + X = 1 * 8 + 5 = 13;
 /// pin = bank * 32 + number = 0 * 32 + 13 = 13;
-///
-/// gpiochip_number = pin_number / 32; // Номер банка
-/// line_offset = pin_number % 32; // Номер пина в банке
 /// ```
-///
+
+/// SYSFS номер порта кнопки ввода
+const S1_BTN: u8 = 124; //124
+/// SYSFS номер порта кнопки выбора
+const S2_BTN: u8 = 125; //125
+
 fn gpio_navigation_handlers(nav_manager: NavigationManager) {
     // Кнопка 1 (GPIO): Навигация вниз
     let nav_down = nav_manager.clone();
     std::thread::spawn(move || {
-        let down_btn_req = Request::builder()
-            .on_chip(S1_BTN.0)
-            .with_line(S1_BTN.1 as u32)
-            .as_input()
-            .with_edge_detection(gpiocdev::line::EdgeDetection::RisingEdge)
-            .request()
-            .unwrap();
-        debug!("down_irq_thread launched!");
+        let input = Pin::new(S1_BTN as u64);
+        debug!("return_irq_thread launched!");
+        input.with_exported(|| {
+            input.set_direction(Direction::In)?;
+            input.set_edge(Edge::RisingEdge)?;
+            let mut poller = input.get_poller()?;
 
-        loop {
-            if down_btn_req.has_edge_event().unwrap() {
-                if let Ok(edge) = down_btn_req.read_edge_event() {
-                    if edge.kind == gpiocdev::line::EdgeKind::Rising {
-                        debug!("DownArrow pressed");
-                        // Симуляция нажатия кнопки DOWN
-                        nav_down.navigate_down();
-                        std::thread::sleep(Duration::from_millis(400));
+            let mut last_press = Instant::now() - Duration::from_millis(1000);
+            let debounce = Duration::from_millis(350);
+
+            loop {
+                if let Some(pin_value) = poller.poll(1000)? {
+                    if pin_value == 1 {
+                        let now = Instant::now();
+                        if now.duration_since(last_press) >= debounce {
+                            last_press = now;
+                            nav_down.navigate_down();
+                        } else {
+                            // Событие проигнорировано как дребезг
+                        }
                     }
                 }
             }
-        }
+        })
     });
 
     // Кнопка 2 (GPIO): Выбор/подтверждение
-    let nav_select = nav_manager.clone();
+    let nav_down = nav_manager.clone();
     std::thread::spawn(move || {
-        let return_btn_req = Request::builder()
-            .on_chip(S2_BTN.0)
-            .with_line(S2_BTN.1 as u32)
-            .as_input()
-            .with_edge_detection(gpiocdev::line::EdgeDetection::RisingEdge)
-            .request()
-            .unwrap();
+        let input = Pin::new(S2_BTN as u64);
         debug!("return_irq_thread launched!");
-        loop {
-            if return_btn_req.has_edge_event().unwrap() {
-                if let Ok(edge) = return_btn_req.read_edge_event() {
-                    if edge.kind == gpiocdev::line::EdgeKind::Rising {
-                        debug!("Return pressed");
-                        // Симуляция нажатия кнопки ENTER
-                        nav_select.select_item();
-                        std::thread::sleep(Duration::from_millis(400));
+        input.with_exported(|| {
+            input.set_direction(Direction::In)?;
+            input.set_edge(Edge::RisingEdge)?;
+            let mut poller = input.get_poller()?;
+
+            let mut last_press = Instant::now() - Duration::from_millis(1000);
+            let debounce = Duration::from_millis(350);
+            loop {
+                if let Some(pin_value) = poller.poll(1000)? {
+                    if pin_value == 1 {
+                        let now = Instant::now();
+                        if now.duration_since(last_press) >= debounce {
+                            last_press = now;
+                            nav_down.select_item();
+                        } else {
+                            // Событие проигнорировано как дребезг
+                        }
                     }
                 }
             }
-        }
+        })
     });
 }

@@ -1,14 +1,14 @@
 [package]
-name = "menu_tui"
-version = "0.2.2"
+name = "logger"
+version = "0.1.0"
 edition = "2024"
 authors.workspace = true
 
 [dependencies]
-clap = { workspace = true }
+chrono = "0.4"
+protocol_lib = { path = "../protocol_lib" }
 config_lib = { path = "../config_lib" }
-cursive = {version = "0.21.1", features = ["toml"]}
-
-crossterm = "0.25.0"
 log = { workspace = true }
 env_logger = { workspace = true }
+serialport = { workspace = true }
+signal-hook = "0.3"

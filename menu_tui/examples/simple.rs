@@ -57,7 +57,7 @@ fn simulate_gpio_handlers(nav_manager: NavigationManager) {
         thread::sleep(Duration::from_secs(3));
 
         loop {
-            thread::sleep(Duration::from_millis(3000));
+            thread::sleep(Duration::from_millis(4000));
 
             // Симуляция нажатия кнопки GPIO
             nav_select.select_item();

@@ -12,26 +12,6 @@ use cursive::event::{Event, EventResult, Key};
 use cursive::views::{CircularFocus, ListView, SelectView};
 use cursive::{CbSink, Cursive, View};
 
-// TODO: Перенести в отдельный модуль
-enum ActiveMenuView {
-    MainView,
-    ConfigView,
-    ExitView,
-    UpdateView,
-}
-
-impl From<&str> for ActiveMenuView {
-    fn from(value: &str) -> Self {
-        match value {
-            "main_menu" => ActiveMenuView::MainView,
-            "config_menu" => ActiveMenuView::ConfigView,
-            "exit_menu" => ActiveMenuView::ExitView,
-            "update_menu" => ActiveMenuView::UpdateView,
-            _ => ActiveMenuView::MainView,
-        }
-    }
-}
-
 /// Менеджер навигации для управления меню c вызывающей стороны
 pub struct NavigationManager {
     // CbSink  — это thread-safe канал, позволяющий отправлять callback-функции из любого потока.

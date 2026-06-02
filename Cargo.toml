@@ -5,7 +5,7 @@ members = [
     "menu_tui",
     "protocol_lib",
     "rk_nku_sync",
-    "rk_nku_menu",
+    "rk_nku_menu", "logger",
 ]
 
 [workspace.package]

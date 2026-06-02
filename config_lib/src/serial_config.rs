@@ -1,4 +1,4 @@
-use config_lib::device_config::DeviceConfig;
+use crate::device_config::DeviceConfig;
 use log::debug;
 
 pub struct SerialPortConfig {
